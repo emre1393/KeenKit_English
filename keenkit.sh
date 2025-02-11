@@ -928,7 +928,7 @@ service_data_generator() {
     fi
   }
 
-  curl -L -s "https://raw.githubusercontent.com/$USERNAME/$REPO/main/service_data_generator.py" --output "$SCRIPT_PATH"
+  curl -L -s "https://raw.githubusercontent.com/emre1393/KeenKit_English/main/service_data_generator.py" --output "$SCRIPT_PATH"
   if [ $? -ne 0 ]; then
     print_message "$($is_english && echo "Script loading error in $SCRIPT_PATH" || echo "Ошибка загрузки скрипта в $SCRIPT_PATH")" "$RED"
     exit_function
