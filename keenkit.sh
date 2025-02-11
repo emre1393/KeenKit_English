@@ -1,9 +1,9 @@
 #!/bin/sh
 
 RED='\033[1;31m'
-GREEN='\033[1;32m'
-CYAN='\033[0;36m'
-NC='\033[0m'
+GREEN="\033[32m"
+CYAN="\033[36m"
+NC="\033[0m"  # No color
 
 USERNAME="spatiumstas"
 USER='root'
@@ -120,7 +120,7 @@ main_menu() {
 print_message() {
   local message="$1"
   local color="${2:-$NC}"
-  local border=$(printf '%0.s-' $(seq 1 $((${#message} + 2))))
+  border=$(printf '%0.s-' $(seq 1 $((${#message} + 2))))
   printf "${color}\n+${border}+\n| ${message} |\n+${border}+\n${NC}\n"
 }
 
@@ -175,7 +175,7 @@ get_architecture() {
 
 packages_checker() {
   if ! opkg list-installed | grep -q "^curl"; then
-    print_message $($is_english && echo "Installing curl..." || echo "Устанавливаем curl...") "$GREEN"
+    print_message "$($is_english && echo "Installing curl..." || echo "Устанавливаем curl...")" "$GREEN"
     opkg update && opkg install curl
     echo ""
   fi
@@ -195,15 +195,15 @@ packages_delete() {
   done
 
   if [ -n "$removed_packages" ]; then
-    print_message $($is_english && echo "Packages successfully removed: $removed_packages" || echo "Пакеты успешно удалены: $removed_packages") "$GREEN"
+    print_message "$($is_english && echo "Packages successfully removed: $removed_packages" || echo "Пакеты успешно удалены: $removed_packages")" "$GREEN"
   fi
 
   if [ -n "$failed_packages" ]; then
-    print_message $($is_english && echo "The following packages were not removed due to dependencies: $failed_packages" || echo "Следующие пакеты не были удалены из-за зависимостей: $failed_packages") "$RED"
+    print_message "$($is_english && echo "The following packages were not removed due to dependencies: $failed_packages" || echo "Следующие пакеты не были удалены из-за зависимостей: $failed_packages")" "$RED"
   fi
 
   if [ -z "$removed_packages" ] && [ -z "$failed_packages" ]; then
-    print_message $($is_english && echo "The packages used are not installed." || echo "Используемые пакеты не установлены") "$CYAN"
+    print_message "$($is_english && echo "The packages used are not installed." || echo "Используемые пакеты не установлены")" "$CYAN"
   fi
 
   exit_function
@@ -216,7 +216,7 @@ perform_dd() {
   output=$(dd if="$input_file" of="$output_file" conv=fsync 2>&1 | tee /dev/tty)
 
   if echo "$output" | grep -iq "error\|can't"; then
-    print_message $($is_english && echo "Error while overwriting the partition" || echo "Ошибка при перезаписи раздела") "$RED"
+    print_message "$($is_english && echo "Error while overwriting the partition" || echo "Ошибка при перезаписи раздела")" "$RED"
     exit_function
   fi
 }
@@ -285,7 +285,7 @@ EOF
   else
     selected_drive=$(echo "$uuids" | awk -v choice="$choice" '{split($0, a, " "); print a[choice]}')
     if [ -z "$selected_drive" ]; then
-      print_message $($is_english && echo "Invalid choice" || echo "Недопустимый выбор") "$RED"
+      print_message "$($is_english && echo "Invalid choice" || echo "Недопустимый выбор")" "$RED"
       sleep 2
       main_menu
     fi
@@ -317,7 +317,7 @@ get_country() {
 
 change_country() {
   if get_country; then
-    print_message $($is_english && echo "Router region is RU, it needs to be changed to EA" || echo "Регион роутера RU, необходимо изменить на EA") "$CYAN"
+    print_message "$($is_english && echo "Router region is RU, it needs to be changed to EA" || echo "Регион роутера RU, необходимо изменить на EA")" "$CYAN"
     if $is_english; then
       read -p "Change region? (y/n) " user_input
     else
@@ -364,9 +364,9 @@ backup_config() {
         ndmc -c "copy startup-config $backup_file"
 
         if [ $? -eq 0 ]; then
-          print_message $($is_english && echo "Startup-config saved to $backup_file" || echo "Startup-config сохранен в $backup_file") "$GREEN"
+          print_message "$($is_english && echo "Startup-config saved to $backup_file" || echo "Startup-config сохранен в $backup_file")" "$GREEN"
         else
-          print_message $($is_english && echo "Error saving backup" || echo "Ошибка при сохранении бэкапа") "$RED"
+          print_message "$($is_english && echo "Error saving backup" || echo "Ошибка при сохранении бэкапа")" "$RED"
         fi
       else
         echo $($is_english && echo "Backup not performed, no drive selected." || echo "Бэкап не выполнен, накопитель не выбран.")
@@ -390,7 +390,11 @@ exit_function() {
 }
 
 exit_main_menu() {
-  printf "\n${CYAN}00. $($is_english && echo 'Exit to main menu' || echo 'Выход в главное меню')${NC}\n\n"
+  if $is_english; then
+    printf "\n${CYAN}00. Exit to main menu${NC}\n\n"
+  else
+    printf "\n${CYAN}00. Выход в главное меню${NC}\n\n"
+  fi
 }
 
 script_update() {
@@ -404,10 +408,10 @@ script_update() {
     chmod +x $OPT_DIR/$SCRIPT
     cd $OPT_DIR/bin
     ln -sf $OPT_DIR/$SCRIPT $OPT_DIR/bin/keenkit
-    print_message $($is_english && echo "Script successfully updated" || echo "Скрипт успешно обновлён") "$GREEN"
+    print_message "$($is_english && echo "Script successfully updated" || echo "Скрипт успешно обновлён")" "$GREEN"
     $OPT_DIR/$SCRIPT post_update
   else
-    print_message $($is_english && echo "Error downloading script" || echo "Ошибка при скачивании скрипта") "$RED"
+    print_message "$($is_english && echo "Error downloading script" || echo "Ошибка при скачивании скрипта")" "$RED"
   fi
 }
 
@@ -432,7 +436,7 @@ post_update() {
 
 internet_checker() {
   if ! ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
-    print_message $($is_english && echo "No internet access. Please check your connection." || echo "Нет доступа к интернету. Проверьте подключение.") "$RED"
+    print_message "$($is_english && echo "No internet access. Please check your connection." || echo "Нет доступа к интернету. Проверьте подключение.")" "$RED"
     exit_function
   fi
 }
@@ -483,7 +487,7 @@ ota_update() {
 
   if [ -z "$DIRS" ]; then
     MESSAGE=$(echo "$REQUEST" | grep -Po '"message":.*?[^\\]",' | awk -F'"' '{print $4}')
-    print_message $($is_english && echo "Error fetching data from GitHub, try again later or use VPN" || echo "Ошибка при получении данных с GitHub, попробуйте позже или через VPN") "$RED"
+    print_message "$($is_english && echo "Error fetching data from GitHub, try again later or use VPN" || echo "Ошибка при получении данных с GitHub, попробуйте позже или через VPN")" "$RED"
     echo $($is_english && echo "Available models:" || echo "Доступные модели:")
     echo "$MESSAGE"
     exit_function
@@ -509,9 +513,17 @@ ota_update() {
 
   BIN_FILES=$(curl -s "https://api.github.com/repos/$USERNAME/$OTA_REPO/contents/$(echo "$DIR" | sed 's/ /%20/g')" | grep -Po '"name":.*?[^\\]",' | awk -F'"' '{print $4}' | grep ".bin")
   if [ -z "$BIN_FILES" ]; then
-    printf "${RED}$($is_english && echo 'No files in directory $DIR.' || echo 'В директории $DIR нет файлов.')${NC}\n"
+    if $is_english; then
+      printf "${RED}No files in directory $DIR.${NC}\n"
+    else
+      printf "${RED}В директории $DIR нет файлов.${NC}\n"
+    fi
   else
-    printf "\n$($is_english && echo 'Firmwares for $DIR:' || echo 'Прошивки для $DIR:')\n"
+    if $is_english; then
+      printf "\nFirmwares for $DIR:\n"
+    else
+      printf "\nПрошивки для $DIR:\n"
+    fi
     i=1
     for FILE in $BIN_FILES; do
       printf "$i. $FILE\n"
@@ -545,7 +557,11 @@ ota_update() {
       --output "$DOWNLOAD_PATH/$FILE"
 
     if [ ! -f "$DOWNLOAD_PATH/$FILE" ]; then
-      printf "${RED}Файл $FILE не был загружен/найден.${NC}\n"
+      if $is_english; then
+        printf "${RED}File $FILE was not downloaded/found.${NC}\n"
+      else
+        printf "${RED}Файл $FILE не был загружен/найден.${NC}\n"
+      fi
       if $is_english; then
         read -n 1 -s -r -p "Press any key to return..."
       else
@@ -559,7 +575,11 @@ ota_update() {
     FILE_MD5SUM=$(md5sum "$DOWNLOAD_PATH/$FILE" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
 
     if [ "$MD5SUM" != "$FILE_MD5SUM" ]; then
-      printf "${RED}$($is_english && echo 'MD5 hash does not match.' || echo 'MD5 хеш не совпадает.')${NC}"
+      if $is_english; then
+        printf "${RED}MD5 hash does not match.${NC}"
+      else
+        printf "${RED}MD5 хеш не совпадает.${NC}"
+      fi
       echo $($is_english && echo "Expected: $MD5SUM" || echo "Ожидаемый: $MD5SUM")
       echo $($is_english && echo "Actual: $FILE_MD5SUM" || echo "Фактический: $FILE_MD5SUM")
       rm -f "$DOWNLOAD_PATH/$FILE"
@@ -567,10 +587,11 @@ ota_update() {
     fi
 
 
-    printf "${GREEN}MD5 хеш совпадает${NC}\n\n"
+    print_message "$($is_english && echo "MD5 hash matches" || echo "MD5 хеш совпадает")" "$GREEN"
+
     rm -f "$DOWNLOAD_PATH/md5sum"
     if $is_english; then
-      read -p "$(printf "Selected ${GREEN}$FILE${NC} for update, is that correct? (y/n) ")" CONFIRM
+      read -p "$(printf "Selected ${GREEN}$FILE${NC} for update, is this correct? (y/n) ")" CONFIRM
     else
       read -p "$(printf "Выбран ${GREEN}$FILE${NC} для обновления, всё верно? (y/n) ")" CONFIRM
     fi
@@ -578,7 +599,7 @@ ota_update() {
     y | Y)
       get_ota_fw_name "$FILE"
       update_firmware_block "$DOWNLOAD_PATH/$FILE" "$use_mount"
-      print_message $($is_english && echo "Firmware successfully updated" || echo "Прошивка успешно обновлена") "$GREEN"
+      print_message "$($is_english && echo "Firmware successfully updated" || echo "Прошивка успешно обновлена")" "$GREEN"
       ;;
     n | N)
       rm -f "$DOWNLOAD_PATH/$FILE"
@@ -587,7 +608,7 @@ ota_update() {
     *) ;;
     esac
     rm -f "$DOWNLOAD_PATH/$FILE"
-    print_message $($is_english && echo "Rebooting the device..." || echo "Перезагружаю устройство...") "${CYAN}"
+    print_message "$($is_english && echo "Rebooting the device..." || echo "Перезагружаю устройство...")" "${CYAN}"
     sleep 1
     reboot
     main_menu
@@ -598,7 +619,7 @@ update_firmware_block() {
   local firmware="$1"
   local use_mount="$2"
   if get_country; then
-    print_message $($is_english && echo "Router region needs to be changed to EA" || echo "Регион роутера необходимо изменить на EA")
+    print_message "$($is_english && echo "Router region needs to be changed to EA" || echo "Регион роутера необходимо изменить на EA")"
   fi
   echo ""
   backup_config
@@ -628,7 +649,7 @@ firmware_manual_update() {
   ram_size=$(get_ram_size)
 
   if [ "$ram_size" -lt $MIN_RAM_SIZE ]; then
-    print_message $($is_english && echo "Update is only possible from the built-in Entware storage" || echo "Обновление возможно только со встроенного накопителя Entware") "$CYAN"
+    print_message "$($is_english && echo "Update is only possible from the built-in Entware storage" || echo "Обновление возможно только со встроенного накопителя Entware")" "$CYAN"
     selected_drive="$STORAGE_DIR"
     use_mount=true
   else
@@ -642,7 +663,7 @@ firmware_manual_update() {
   count=$(echo "$files" | wc -l)
 
   if [ -z "$files" ]; then
-    print_message $($is_english && echo "Update file not found on the drive" || echo "Файл обновления не найден на накопителе") "$RED"
+    print_message "$($is_english && echo "Update file not found on the drive" || echo "Файл обновления не найден на накопителе")" "$RED"
     exit_function
   fi
 
@@ -659,7 +680,7 @@ firmware_manual_update() {
     main_menu
   fi
   if [ "$choice" -lt 1 ] || [ "$choice" -gt "$count" ]; then
-    print_message $($is_english && echo "Invalid file selection" || echo "Неверный выбор файла") "$RED"
+    print_message "$($is_english && echo "Invalid file selection" || echo "Неверный выбор файла")" "$RED"
     exit_function
   fi
 
@@ -675,7 +696,7 @@ firmware_manual_update() {
   case "$item_rc1" in
   y | Y)
     update_firmware_block "$Firmware" "$use_mount"
-    print_message $($is_english && echo "Firmware successfully updated" || echo "Прошивка успешно обновлена") "$GREEN"
+    print_message "$($is_english && echo "Firmware successfully updated" || echo "Прошивка успешно обновлена")" "$GREEN"
     if $is_english; then
       read -p "Delete update file? (y/n) " item_rc2
     else
@@ -692,7 +713,7 @@ firmware_manual_update() {
       ;;
     *) ;;
     esac
-    print_message $($is_english && echo "Rebooting the device..." || echo "Перезагружаю устройство...") "${CYAN}"
+    print_message "$($is_english && echo "Rebooting the device..." || echo "Перезагружаю устройство...")" "${CYAN}"
     sleep 1
     reboot
     ;;
@@ -705,9 +726,10 @@ backup_block() {
   output=$(mount)
   identify_external_drive $($is_english && echo "Select the drive for backup:" || echo "Выберите накопитель для бэкапа:")
   output=$(cat /proc/mtd)
-  printf "${GREEN}$(($is_english && echo 'Available partitions:' || echo 'Доступные разделы'))${NC}\n"
+  printf "${GREEN}$( $is_english && echo 'Available partitions:' || echo 'Доступные разделы' )${NC}\n"
   echo "$output" | awk 'NR>1 {print $0}'
-  printf $($is_english && echo "99. Backup all partitions${NC}" || echo "99. Бэкап всех разделов${NC}")\n
+  echo ""
+  printf "%s\n" "$($is_english && echo "99. Backup all partitions" || echo "99. Бэкап всех разделов")"
   exit_main_menu
   folder_path="$selected_drive/backup$(date +%Y-%m-%d_%H-%M-%S)"
   if $is_english; then
@@ -738,7 +760,7 @@ backup_block() {
 
       if ! cat "/dev/mtdblock$i" >"$folder_path/mtd$i.$mtd_name.bin"; then
         error_occurred=1
-        print_message $($is_english && echo "Error: Not enough space to save mtd$i.$mtd_name.bin" || echo "Ошибка: Недостаточно места для сохранения mtd$i.$mtd_name.bin") "$RED"
+        print_message "$($is_english && echo "Error: Not enough space to save mtd$i.$mtd_name.bin" || echo "Ошибка: Недостаточно места для сохранения mtd$i.$mtd_name.bin")" "$RED"
         echo ""
         if $is_english; then
           read -n 1 -s -r -p "Press any key to return..."
@@ -762,7 +784,11 @@ backup_block() {
         valid_parts=1
       fi
 
-      printf "$(if $is_english; then echo 'Selected ${GREEN}mtd$part.$selected_mtd.bin${NC}, copying...'; else echo 'Выбран ${GREEN}mtd$part.$selected_mtd.bin${NC}, копирую...'; fi)"
+      if $is_english; then
+        printf "Selected ${GREEN}mtd$part.$selected_mtd.bin${NC}, copying...\n"
+      else
+        printf "Выбран ${GREEN}mtd$part.$selected_mtd.bin${NC}, копирую...\n"
+      fi
       sleep 1
       echo ""
       perform_dd "/dev/mtd$part" "$folder_path/mtd$part.$selected_mtd.bin"
@@ -771,14 +797,14 @@ backup_block() {
   fi
 
   if [ -n "$non_existent_parts" ]; then
-    print_message $($is_english && echo "Selected ${GREEN}mtd$part.$selected_mtd.bin${NC}, copying..." || echo "Выбран ${GREEN}mtd$part.$selected_mtd.bin${NC}, копирую...") "$CYAN"
+    print_message "$($is_english && echo "Selected ${GREEN}mtd$part.$selected_mtd.bin${NC}, copying..." || echo "Выбран ${GREEN}mtd$part.$selected_mtd.bin${NC}, копирую...")" "$CYAN"
     error_occurred=1
   fi
 
   if [ "$error_occurred" -eq 0 ] && [ $valid_parts -eq 1 ]; then
-    print_message $($is_english && echo "Partition(s) successfully saved to $folder_path" || echo "Раздел(ы) успешно сохранены в $folder_path") "$GREEN"
+    print_message "$($is_english && echo "Partition(s) successfully saved to $folder_path" || echo "Раздел(ы) успешно сохранены в $folder_path")" "$GREEN"
   else
-    print_message $($is_english && echo "Errors occurred while saving the partition(s). Check the output above." || echo "Ошибки при сохранении раздел(ов). Проверьте вывод выше.") "$RED"
+    print_message "$($is_english && echo "Errors occurred while saving the partition(s). Check the output above." || echo "Ошибки при сохранении раздел(ов). Проверьте вывод выше.")" "$RED"
   fi
   exit_function
 }
@@ -786,16 +812,16 @@ backup_block() {
 backup_entware() {
   output=$(mount)
   identify_external_drive $($is_english && echo "Select a drive:" || echo "Выберите накопитель:") $($is_english && echo "(there might not be enough space)" || echo "(может не хватить места)") "true"
-  print_message $($is_english && echo "Performing backup..." || echo "Выполняю копирование...") "$CYAN"
+  print_message "$($is_english && echo "Performing backup..." || echo "Выполняю копирование...")" "$CYAN"
 
   backup_file="$selected_drive/$(get_architecture)_entware_backup_$(date +%Y-%m-%d_%H-%M-%S).tar.gz"
   tar_output=$(tar cvzf "$backup_file" -C "$OPT_DIR" . 2>&1)
 
   if echo "$tar_output" | grep -iq "error\|no space left on device"; then
-    print_message $($is_english && echo "Error while creating backup:" || echo "Ошибка при создании бэкапа:") "$RED"
+    print_message "$($is_english && echo "Error while creating backup:" || echo "Ошибка при создании бэкапа:")" "$RED"
     echo "$tar_output"
   else
-    print_message $($is_english && echo "Backup successfully saved to $backup_file" || echo "Бэкап успешно скопирован в $backup_file") "$GREEN"
+    print_message "$($is_english && echo "Backup successfully saved to $backup_file" || echo "Бэкап успешно скопирован в $backup_file")" "$GREEN"
   fi
   exit_function
 }
@@ -806,7 +832,7 @@ rewrite_block() {
   files=$(find $selected_drive -name '*.bin')
   count=$(echo "$files" | wc -l)
   if [ -z "$files" ]; then
-    print_message $($is_english && echo "Bin file not found in the selected storage" || echo "Bin файл не найден в выбранном хранилище") "$RED"
+    print_message "$($is_english && echo "Bin file not found in the selected storage" || echo "Bin файл не найден в выбранном хранилище")" "$RED"
     exit_function
   fi
   echo ""
@@ -823,7 +849,7 @@ rewrite_block() {
     main_menu
   fi
   if [ $choice -lt 1 ] || [ $choice -gt $count ]; then
-    print_message $($is_english && echo "Invalid file selection" || echo "Неверный выбор файла") "$RED"
+    print_message "$($is_english && echo "Invalid file selection" || echo "Неверный выбор файла")" "$RED"
     exit_function
   fi
 
@@ -833,7 +859,7 @@ rewrite_block() {
   output=$(cat /proc/mtd)
   echo "$output" | awk 'NR>1 {print $0}'
   exit_main_menu
-  print_message $($is_english && echo "Warning! Bootloader will not be overwritten!" || echo "Внимание! Загрузчик не перезаписывается!") "$RED"
+  print_message "$($is_english && echo "Warning! Bootloader will not be overwritten!" || echo "Внимание! Загрузчик не перезаписывается!")" "$RED"
   if $is_english; then
     read -p "Select the partition to overwrite (e.g., for mtd2 it's 2): " choice
   else
@@ -844,7 +870,7 @@ rewrite_block() {
     main_menu
   fi
   if [ "$choice" = "0" ]; then
-    print_message $($is_english && echo "The bootloader cannot be overwritten!" || echo "Загрузчик не перезаписывается!") "$RED"
+    print_message "$($is_english && echo "The bootloader cannot be overwritten!" || echo "Загрузчик не перезаписывается!")" "$RED"
     exit_function
   fi
   selected_mtd=$(echo "$output" | awk -v i=$choice 'NR==i+2 {print substr($0, index($0,$4))}' | grep -oP '(?<=\").*(?=\")')
@@ -859,7 +885,7 @@ rewrite_block() {
   case "$item_rc1" in
   y | Y)
     perform_dd "$mtdFile" "/dev/mtdblock$choice"
-    print_message $($is_english && echo "Partition successfully overwritten" || echo "Раздел успешно перезаписан") "$GREEN"
+    print_message "$($is_english && echo "Partition successfully overwritten" || echo "Раздел успешно перезаписан")" "$GREEN"
     if $is_english; then
       read -r -p "Reboot the router? (y/n) " item_rc3
     else
@@ -890,13 +916,13 @@ service_data_generator() {
 
   internet_checker && opkg update && echo "" && {
     output=$(opkg install curl python3-base python3 python3-light libpython3 --nodeps 2>&1) || {
-      print_message $($is_english && echo "Error during installation:" || echo "Ошибка при установке:") "$RED" >&2
+      print_message "$($is_english && echo "Error during installation:" || echo "Ошибка при установке:")" "$RED" >&2
       echo "$output" >&2
       exit_function
     }
 
     if echo "$output" | grep -q "error"; then
-      print_message $($is_english && echo "Error detected in the output:" || echo "Обнаружена ошибка в выводе:") "$RED" >&2
+      print_message "$($is_english && echo "Error detected in the output:" || echo "Обнаружена ошибка в выводе:")" "$RED" >&2
       echo "$output" >&2
       exit_function
     fi
@@ -904,7 +930,7 @@ service_data_generator() {
 
   curl -L -s "https://raw.githubusercontent.com/$USERNAME/$REPO/main/service_data_generator.py" --output "$SCRIPT_PATH"
   if [ $? -ne 0 ]; then
-    print_message $($is_english && echo "Script loading error in $SCRIPT_PATH" || echo "Ошибка загрузки скрипта в $SCRIPT_PATH") "$RED"
+    print_message "$($is_english && echo "Script loading error in $SCRIPT_PATH" || echo "Ошибка загрузки скрипта в $SCRIPT_PATH")" "$RED"
     exit_function
   fi
 
@@ -914,9 +940,9 @@ service_data_generator() {
   if [ -n "$mtdSlot" ]; then
     perform_dd "/dev/mtd$mtdSlot" "$folder_path/U-Config.bin"
     if [ $? -eq 0 ]; then
-      print_message $($is_english && echo "Current U-Config backup saved in $folder_path" || echo "Бэкап текущего U-Config сохранён в $folder_path") "$GREEN"
+      print_message "$($is_english && echo "Current U-Config backup saved in $folder_path" || echo "Бэкап текущего U-Config сохранён в $folder_path")" "$GREEN"
     else
-      print_message $($is_english && echo "Error creating U-Config backup" || echo "Ошибка при создании бэкапа U-Config") "$RED"
+      print_message "$($is_english && echo "Error creating U-Config backup" || echo "Ошибка при создании бэкапа U-Config")" "$RED"
     fi
   fi
 
@@ -928,7 +954,7 @@ service_data_generator() {
 
   mtdFile=$(find "$folder_path" -type f -name 'U-Config_*.bin' | head -n 1)
   if [ -n "$mtdFile" ]; then
-    print_message $($is_english && echo "New service data saved in $mtdFile" || echo "Новые сервисные данные сохранены в $mtdFile") "$GREEN"
+    print_message "$($is_english && echo "New service data saved in $mtdFile" || echo "Новые сервисные данные сохранены в $mtdFile")" "$GREEN"
   fi
   if $is_english; then
     read -p "Continue replacement? (y/n) " item_rc1
@@ -939,7 +965,11 @@ service_data_generator() {
   case "$item_rc1" in
   y | Y)
     echo ""
-    printf "${CYAN}$($is_english && echo 'Overwriting the first partition...' || echo 'Перезаписываю первый раздел...')${NC}\n"
+    if $is_english; then
+      printf "${CYAN}Overwriting the first partition...${NC}\n"
+    else
+      printf "${CYAN}Перезаписываю первый раздел...${NC}\n"
+    fi
     perform_dd "$mtdFile" "/dev/mtdblock$mtdSlot"
     if [ -n "$mtdSlot_res" ]; then
       echo ""
@@ -947,9 +977,9 @@ service_data_generator() {
       perform_dd "$mtdFile" "/dev/mtdblock$mtdSlot_res"
     fi
     if [ $? -eq 0 ]; then
-      print_message "Сервисные данные успешно заменены" "$GREEN"
+      print_message "$($is_english && echo 'Service data successfully replaced' || echo 'Сервисные данные успешно заменены')" "$GREEN"
     else
-      print_message "Ошибка при выполнении замены" "$RED"
+      print_message "$($is_english && echo 'Error during replacement' || echo 'Ошибка при выполнении замены')" "$RED"
     fi
     ;;
   esac
