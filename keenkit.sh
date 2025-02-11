@@ -107,7 +107,7 @@ main_menu() {
     00) exit ;;
     88) packages_delete ;;
     99) script_update "main" ;;
-    999) script_update "dev" ;;
+    #999) script_update "dev" ;;
     *)
       echo $($is_english && echo "Invalid choice. Please try again." || echo "Неверный выбор. Попробуйте снова.")
       sleep 1
@@ -396,7 +396,8 @@ exit_main_menu() {
 script_update() {
   BRANCH="$1"
   packages_checker
-  curl -L -s "https://raw.githubusercontent.com/$USERNAME/$REPO/$BRANCH/$SCRIPT" --output $TMP_DIR/$SCRIPT
+  curl -L -s "https://raw.githubusercontent.com/emre1393/KeenKit_English/$BRANCH/$SCRIPT" --output $TMP_DIR/$SCRIPT
+  #curl -L -s "https://raw.githubusercontent.com/$USERNAME/$REPO/$BRANCH/$SCRIPT" --output $TMP_DIR/$SCRIPT
 
   if [ -f "$TMP_DIR/$SCRIPT" ]; then
     mv "$TMP_DIR/$SCRIPT" "$OPT_DIR/$SCRIPT"
