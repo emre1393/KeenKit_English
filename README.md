@@ -8,7 +8,7 @@
 
 2. Install the script
 ```
-opkg update && opkg install curl && curl -L -s "https://raw.githubusercontent.com/spatiumstas/KeenKit/main/install.sh" > /tmp/install.sh && sh /tmp/install.sh
+opkg update && opkg install curl && curl -L -s "https://raw.githubusercontent.com/emre1393/KeenKit_English/main/install.sh" > /tmp/install.sh && sh /tmp/install.sh
 ```
 Run via:
 `keenkit` or `/opt/keenkit.sh`
