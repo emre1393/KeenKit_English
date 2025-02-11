@@ -16,7 +16,7 @@ def replace_values(filename, target=None):
         with open(file_path, 'rb') as f:
             data = f.read()
     except FileNotFoundError:
-        print(f'Файл {file_path} не найден. Пожалуйста, проверьте путь к файлу.')
+        print(f'File {file_path} not found. Please check the file path..')
         return
 
     patterns = {
@@ -53,15 +53,15 @@ def replace_values(filename, target=None):
                     new_value = replacements[name]
 
                 data = data[:start] + new_value + data[start + len(original_value):]
-                print(f'{name} заменён на {new_value.decode("utf-8", errors="ignore")}')
+                print(f'{name} replaced by {new_value.decode("utf-8", errors="ignore")}')
         else:
-            print(f'{name} не найден.')
+            print(f'{name} not found.')
 
     if 'servicetag' in replacements:
         servicetag_last_two_bytes = replacements['servicetag'][-4:]
         servicetag_suffix = servicetag_last_two_bytes.decode('utf-8', errors='ignore')
     else:
-        # print("Не удалось получить последние 2 байта из servicetag. Использую 'XXXX' по умолчанию.")
+        # print("Failed to retrieve the last 2 bytes from servicetag. Using 'XXXX' as default.")
         servicetag_suffix = target
 
     base, ext = os.path.splitext(filename)
@@ -70,7 +70,7 @@ def replace_values(filename, target=None):
 
     with open(new_file_path, 'wb') as f:
         f.write(data)
-        # print(f'Новые данные были успешно записаны в файле {new_file_path}')
+        # print(f'New data was successfully written to the file {new_file_path}')
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
