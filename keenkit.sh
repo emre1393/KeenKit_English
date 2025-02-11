@@ -144,7 +144,7 @@ get_uptime() {
   local seconds=$((uptime % 60))
 
   if [ "$days" -gt 0 ]; then
-    printf "%d дн. %02d:%02d:%02d\n" "$days" "$hours" "$minutes" "$seconds"
+    printf "%d day/дн. %02d:%02d:%02d\n" "$days" "$hours" "$minutes" "$seconds"
   else
     printf "%02d:%02d:%02d\n" "$hours" "$minutes" "$seconds"
   fi
