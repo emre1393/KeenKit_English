@@ -1,7 +1,7 @@
 # KeenKit
 ### Multifunctional script that simplifies interaction with a router based on KeeneticOS
 
-![image_2025-02-02_17-32-41](https://github.com/user-attachments/assets/315deac4-6144-48fc-b8d3-b1107b4b1ba6)
+![image](https://github.com/user-attachments/assets/4cf43261-87a8-413c-adab-74576c8a8d8e)
 
 # Installation
 1. Connect via `SSH` to [Entware](https://keen-prt.github.io/wiki/helpful/entware)
