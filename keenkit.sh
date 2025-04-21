@@ -1,5 +1,5 @@
 #!/bin/sh
-# translated via chatgpt, wanted keep russian. but disabled some lines that sends logs to "spatiumstas" url.
+# translated via chatgpt and disabled some lines that sends logs to "spatiumstas" url.
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 CYAN='\033[0;36m'
@@ -13,7 +13,7 @@ OTA_REPO="osvault"
 TMP_DIR="/tmp"
 OPT_DIR="/opt"
 STORAGE_DIR="/storage"
-SCRIPT_VERSION="2.1.4"
+SCRIPT_VERSION="2.1.5"
 MIN_RAM_SIZE="256"
 PACKAGES_LIST="python3-base python3 python3-light libpython3"
 DATE=$(date +%Y-%m-%d_%H-%M)
@@ -41,7 +41,7 @@ EOF
   echo "5. OTA Update"
   echo "6. Replace service data"
   if get_country; then
-    echo "7. Change region"
+    printf "${RED}7. 7. Change region${NC}\n"
   fi
   printf "\n88. Remove used packages\n"
   echo "99. Update script"
@@ -511,9 +511,12 @@ ota_update() {
     echo ""
     total_size=$(curl -sI "https://raw.githubusercontent.com/$USERNAME/$OTA_REPO/master/$(echo "$DIR" | sed 's/ /%20/g')/$(echo "$FILE" | sed 's/ /%20/g')" | grep -i content-length | awk '{print $2}' | tr -d '\r')
     show_progress "$total_size" "$DOWNLOAD_PATH/$FILE" "$FILE" &
+    progress_pid=$!
+
     curl -L --silent \
       "https://raw.githubusercontent.com/$USERNAME/$OTA_REPO/master/$(echo "$DIR" | sed 's/ /%20/g')/$(echo "$FILE" | sed 's/ /%20/g')" \
       --output "$DOWNLOAD_PATH/$FILE"
+    wait $progress_pid
 
     if [ ! -f "$DOWNLOAD_PATH/$FILE" ]; then
       printf "${RED}File $FILE was not downloaded/found.${NC}\n"
@@ -629,6 +632,7 @@ firmware_manual_update() {
   y | Y)
     update_firmware_block "$Firmware" "$use_mount"
     print_message "Firmware successfully updated" "$GREEN"
+    printf "${NC}"
     read -p "Delete update file? (y/n) " item_rc2
     item_rc2=$(echo "$item_rc2" | tr -d ' \n\r')
     case "$item_rc2" in
@@ -735,7 +739,7 @@ backup_entware() {
   print_message "Performing backup..." "$CYAN"
 
   backup_file="$selected_drive/$(get_architecture)_entware_backup_$DATE.tar.gz"
-  tar_output=$(tar cvzf "$backup_file" -C "$OPT_DIR" . 2>&1)
+  tar_output=$(tar cvzf "$backup_file" -C "$OPT_DIR" --exclude="$backup_file" . 2>&1)
   log_operation=$(echo "$tar_output" | tail -n 2)
 
   if echo "$log_operation" | grep -iq "error\|no space left on device"; then
@@ -750,7 +754,7 @@ backup_entware() {
 rewrite_block() {
   output=$(mount)
   identify_external_drive "Select the drive with the located file:"
-  files=$(find $selected_drive -name '*.bin')
+  files=$(find $selected_drive -name '*.bin' -size +60k)
   count=$(echo "$files" | wc -l)
   if [ -z "$files" ]; then
     print_message "Couldn't find a bin file in the selected storage" "$RED"
@@ -777,7 +781,7 @@ rewrite_block() {
   echo "$output" | awk 'NR>1 {print $0}'
   exit_main_menu
   print_message "Warning! Bootloader will not be overwritten!" "$RED"
-  read -p "Select the partition to overwrite (e.g., for mtd2 it's 2): " choice
+  read -p "Select the partition to overwrite (e.g., for mtd2 it is 2): " choice
   choice=$(echo "$choice" | tr -d ' \n\r')
   if [ "$choice" = "00" ]; then
     main_menu
